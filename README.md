@@ -1,5 +1,3 @@
----
-
 ````markdown
 # 🛠️ Projeto: RefitGit - Integração com GitHub API usando Refit, Polly, Cache e Header Propagation
 

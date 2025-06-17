@@ -1,13 +1,11 @@
-﻿using System.Text.Json.Serialization;
+﻿using Refit;
 
-namespace RefitGit.Models
-{
-    public class SearchResult
-    {
-        [JsonPropertyName("total_count")]
-        public int TotalCount { get; set; }
+namespace RefitGit.Models;
 
-        [JsonPropertyName("items")]
-        public List<GitHubRepo> Items { get; set; }
-    }
-}
+/// <summary>
+/// Resultado da busca com total e lista de repositórios.
+/// </summary>
+public record SearchResult(
+    [property: AliasAs("total_count")] int TotalCount,
+    [property: AliasAs("items")] List<GitHubRepo> Items
+);

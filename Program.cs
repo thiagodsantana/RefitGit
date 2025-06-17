@@ -1,12 +1,10 @@
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.OpenApi.Models;
 using Polly;
-using Polly.Extensions.Http;
+using Polly.CircuitBreaker;
+using Polly.Retry;
 using Refit;
 using RefitGit;
 using RefitGit.Handlers;
 using RefitGit.Interfaces;
-using RefitGit.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Text.Json.Serialization;
 
@@ -26,19 +24,33 @@ builder.Services.AddHeaderPropagation(options =>
     options.Headers.Add("X-Correlation-ID"); // Exemplo de header a propagar
 });
 
-// Polly policies
-var retryPolicy = HttpPolicyExtensions
-    .HandleTransientHttpError()
-    .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
-var circuitBreakerPolicy = HttpPolicyExtensions
-    .HandleTransientHttpError()
-    .CircuitBreakerAsync(2, TimeSpan.FromSeconds(30));
-
-// Logging
 builder.Services.AddTransient<LoggingHandler>();
+
 var token = builder.Configuration["GitHub:Token"];
-// GitHub Refit client com Polly e LoggingHandler
+
+// Criando o pipeline de resiliência com Polly v8+
+builder.Services.AddResiliencePipeline("GitHubApiPipeline", pipelineBuilder =>
+{
+    pipelineBuilder
+        .AddRetry(new RetryStrategyOptions
+        {
+            MaxRetryAttempts = 3,
+            Delay = TimeSpan.FromSeconds(2),
+            ShouldHandle = new PredicateBuilder()
+                .Handle<HttpRequestException>()
+        })
+        .AddTimeout(TimeSpan.FromSeconds(10))
+        .AddCircuitBreaker(new CircuitBreakerStrategyOptions
+        {
+            MinimumThroughput = 2,
+            SamplingDuration = TimeSpan.FromSeconds(30),
+            BreakDuration = TimeSpan.FromSeconds(30),
+            ShouldHandle = new PredicateBuilder()
+                .Handle<HttpRequestException>()
+        });
+});
+
 builder.Services.AddRefitClient<IGitHubApi>()
     .ConfigureHttpClient((sp, c) =>
     {
@@ -50,12 +62,13 @@ builder.Services.AddRefitClient<IGitHubApi>()
     })
     .AddHeaderPropagation()
     .AddHttpMessageHandler<LoggingHandler>()
-    .AddPolicyHandler(retryPolicy)
-    .AddPolicyHandler(circuitBreakerPolicy);
+    .AddResilienceHandler("GitHubApiPipeline", options =>
+    {
+        options.Name = "GitHubApiPipeline";
+    });
 
 var app = builder.Build();
 app.UseHeaderPropagation();
-// Mapeia os grupos de endpoints (v1 e v2)
 app.MapGroup("/v1").WithGroupName("v1").MapEndpoints();
 app.MapOpenApi();
 

@@ -1,22 +1,19 @@
-﻿using System.Text.Json.Serialization;
+﻿using Refit;
 
-namespace RefitGit.Models
-{
-    public class RateLimitInfo
-    {
-        [JsonPropertyName("rate")]
-        public RateDetails Rate { get; set; }
-    }
+namespace RefitGit.Models;
 
-    public class RateDetails
-    {
-        [JsonPropertyName("limit")]
-        public int Limit { get; set; }
+/// <summary>
+/// Informações gerais sobre a taxa limite da API GitHub.
+/// </summary>
+public record RateLimitInfo(
+    [property: AliasAs("rate")] RateDetails Rate
+);
 
-        [JsonPropertyName("remaining")]
-        public int Remaining { get; set; }
-
-        [JsonPropertyName("reset")]
-        public long Reset { get; set; } // Unix timestamp
-    }
-}
+/// <summary>
+/// Detalhes específicos da taxa limite.
+/// </summary>
+public record RateDetails(
+    [property: AliasAs("limit")] int Limit,
+    [property: AliasAs("remaining")] int Remaining,
+    [property: AliasAs("reset")] long Reset
+);

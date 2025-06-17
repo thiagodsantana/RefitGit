@@ -1,25 +1,15 @@
-﻿using System.Text.Json.Serialization;
+﻿using Refit;
 
-namespace RefitGit.Models
-{
-    public class Issue
-    {
-        [JsonPropertyName("id")]
-        public long Id { get; set; }
+namespace RefitGit.Models;
 
-        [JsonPropertyName("number")]
-        public int Number { get; set; }
-
-        [JsonPropertyName("title")]
-        public string Title { get; set; }
-
-        [JsonPropertyName("body")]
-        public string? Body { get; set; }
-
-        [JsonPropertyName("state")]
-        public string State { get; set; }
-
-        [JsonPropertyName("user")]
-        public GitHubUser User { get; set; }
-    }
-}
+/// <summary>
+/// Representa uma issue do GitHub.
+/// </summary>
+public record class Issue(
+    [property: AliasAs("id")] long Id,
+    [property: AliasAs("number")] int Number,
+    [property: AliasAs("title")] string Title,
+    [property: AliasAs("body")] string? Body,
+    [property: AliasAs("state")] string State,
+    [property: AliasAs("user")] GitHubUser User
+);

@@ -1,19 +1,13 @@
-﻿using System.Text.Json.Serialization;
+﻿using Refit;
 
-namespace RefitGit.Models
-{
-    public class IssueCreateRequest
-    {
-        [JsonPropertyName("title")]
-        public string Title { get; set; }
+namespace RefitGit.Models;
 
-        [JsonPropertyName("body")]
-        public string? Body { get; set; }
-
-        [JsonPropertyName("assignees")]
-        public List<string>? Assignees { get; set; }
-
-        [JsonPropertyName("labels")]
-        public List<string>? Labels { get; set; }
-    }
-}
+/// <summary>
+/// Dados para criação de uma issue no GitHub.
+/// </summary>
+public record IssueCreateRequest(
+    [property: AliasAs("title")] string Title,
+    [property: AliasAs("body")] string? Body,
+    [property: AliasAs("assignees")] List<string>? Assignees,
+    [property: AliasAs("labels")] List<string>? Labels
+);

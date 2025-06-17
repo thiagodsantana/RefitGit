@@ -1,6 +1,2 @@
-﻿namespace RefitGit.Models
-{
-    public class RepoUpdateRequest
-    {
-    }
-}
+﻿namespace RefitGit.Models;
+public record RepoUpdateRequest();
